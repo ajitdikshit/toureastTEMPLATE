@@ -1,6 +1,6 @@
-const tripKey = "5ae2e3f221c38a28845f05b6e22d2aad9f679149daff8ec505253a68"; // replace with your key
+const tripKey = "YOUR_KEY_OPENTRIPMAP"; 
 
-// Debounce helper
+
 function debounce(fn, wait = 300) {
   let t;
   return (...args) => {
@@ -9,7 +9,7 @@ function debounce(fn, wait = 300) {
   };
 }
 
-// Geocode the search query -> returns {lat, lon}
+
 async function geocodeQuery(query) {
   const url = `https://api.opentripmap.com/0.1/en/places/geoname?name=${encodeURIComponent(query)}&apikey=${tripKey}`;
   try {
@@ -22,7 +22,7 @@ async function geocodeQuery(query) {
   }
 }
 
-// Search tourist places around given coords
+
 async function searchPlaces(lat, lon, radius = 20000, limit = 20) {
   const kinds = "natural,cultural,historic";
   const url = `https://api.opentripmap.com/0.1/en/places/radius?radius=${radius}&lon=${lon}&lat=${lat}&limit=${limit}&apikey=${tripKey}&kinds=${kinds}`;
@@ -37,7 +37,7 @@ async function searchPlaces(lat, lon, radius = 20000, limit = 20) {
   }
 }
 
-// Fetch Wikipedia image for a place
+
 async function fetchImageWiki(name) {
   const q = encodeURIComponent(name);
   const url = `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=pageimages&titles=${q}&pithumbsize=400&origin=*`;
@@ -55,9 +55,9 @@ async function fetchImageWiki(name) {
   return "https://via.placeholder.com/300x200?text=No+Image";
 }
 
-// --- Unsplash fallback ---
+
 async function fetchImageUnsplash(name) {
-  const UNSPLASH_KEY = "JmtQ4WugtseVaXzln7wP04cwBdX1WF3LCjkYX0uNLhQ"; // Replace with your key
+  const UNSPLASH_KEY = "YOUR_UNSPLASH_KEY"; // Replace with your key
   const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(name)}&client_id=${UNSPLASH_KEY}&orientation=landscape&per_page=1`;
   try {
     const res = await fetch(url);
@@ -71,7 +71,7 @@ async function fetchImageUnsplash(name) {
   return "https://via.placeholder.com/300x200?text=No+Image";
 }
 
-// Render places to grid
+
 async function renderPlaces() {
   const grid = document.getElementById("placesGrid");
   if (!grid) return;
@@ -84,14 +84,14 @@ async function renderPlaces() {
 
   grid.innerHTML = "<p>Searching...</p>";
 
-  // Step 1: geocode query
+
   const geo = await geocodeQuery(q);
   if (!geo || !geo.lat || !geo.lon) {
     grid.innerHTML = `<p>No location found for "${q}".</p>`;
     return;
   }
 
-  // Step 2: search places nearby
+
   const results = await searchPlaces(geo.lat, geo.lon, 30000, 30);
   if (results.length === 0) {
     grid.innerHTML = `<p>No interesting places found near "${q}".</p>`;
@@ -104,7 +104,7 @@ async function renderPlaces() {
     const prop = feature.properties;
     const name = prop.name?.trim();
 
-    // Skip unnamed places
+
     if (!name || name.toLowerCase().startsWith("unnamed")) continue;
 
     const xid = prop.xid;
@@ -129,7 +129,7 @@ async function renderPlaces() {
 
     grid.appendChild(card);
 
-    // Async image fetch with Unsplash fallback
+
     (async () => {
       let imgUrl = await fetchImageWiki(name);
       if (!imgUrl || imgUrl.includes("placeholder")) {
@@ -145,7 +145,7 @@ async function renderPlaces() {
   }
 }
 
-// Bucket List + Events
+
 function addToBucket(id, nameEncoded) {
   const name = decodeURIComponent(nameEncoded);
   let bucket = JSON.parse(localStorage.getItem("bucketList")) || [];
@@ -218,7 +218,7 @@ function renderEvents() {
   });
 }
 
-// --- Initialize app ---
+
 document.addEventListener("DOMContentLoaded", () => {
   const searchBox = document.getElementById("searchBox");
   if (searchBox) {
@@ -234,10 +234,11 @@ document.addEventListener("DOMContentLoaded", () => {
     addToBucket(btn.dataset.id, btn.dataset.name);
   });
 
-  // --- Register service worker ---
+
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("/sw.js")
       .then(() => console.log("Service Worker registered"))
       .catch(err => console.error("SW registration failed:", err));
   }
 });
+
