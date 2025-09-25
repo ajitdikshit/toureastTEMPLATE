@@ -1,10 +1,10 @@
 let map;
 let destinationCoords;
-let markersGroup; // group for bounds
-const opentripmapKey = "5ae2e3f221c38a28845f05b6e22d2aad9f679149daff8ec505253a68"; // <-- Replace with your OpenTripMap key
-const orsKey = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjA2ZDYyYzdmNGMzNjRhNDliYjRmZjI3ZjRjNzgxOGU2IiwiaCI6Im11cm11cjY0In0="; // <-- Replace with your OpenRouteService key
+let markersGroup;
+const opentripmapKey = "YOUR_KEY"; // <-- Replace with your OpenTripMap key
+const orsKey = "YOUR_OPENROUTESERVICE_KEY"; // <-- Replace with your OpenRouteService key
 
-// --- Helper: fetch nearby hotels ---
+
 async function fetchNearbyHotels(lat, lon) {
   if (!lat || !lon) return [];
   const radius = 50000; // in meters
@@ -29,13 +29,13 @@ document.addEventListener("DOMContentLoaded", () => {
   destinationCoords = [lat, lon];
   markersGroup = L.featureGroup();
 
-  // Initialize map
+
   map = L.map("map").setView(destinationCoords, 13);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap contributors"
   }).addTo(map);
 
-  // Destination marker
+
   const destMarker = L.marker(destinationCoords)
     .bindPopup(`<b>${placeName}</b>`)
     .addTo(map);
@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadHotels(lat, lon);
 });
 
-// ✅ Get user's current location
+
 async function getCurrentLocation() {
   return new Promise((resolve, reject) => {
     if (navigator.geolocation) {
@@ -60,13 +60,13 @@ async function getCurrentLocation() {
   });
 }
 
-// ✅ Show route from current location → destination (ORS + fallback)
+
 async function showRoute() {
   try {
     const start = await getCurrentLocation();
     const end = destinationCoords;
 
-    // User marker (blue dot)
+ 
     const userMarker = L.marker(start, {
       icon: L.icon({
         iconUrl:
@@ -79,7 +79,7 @@ async function showRoute() {
 
     markersGroup.addLayer(userMarker);
 
-    // Request route from OpenRouteService
+
     const url = "https://api.openrouteservice.org/v2/directions/driving-car/geojson";
     const body = {
       coordinates: [
@@ -109,7 +109,7 @@ async function showRoute() {
       L.polyline([start, end], { color: "red", dashArray: "5,5" }).addTo(map);
     }
 
-    // Fit map to all markers
+
     map.fitBounds(markersGroup.getBounds(), { padding: [50, 50] });
   } catch (err) {
     console.error("Route error:", err);
@@ -122,8 +122,7 @@ async function showRoute() {
   }
 }
 
-// ✅ Load and display hotels (list + map markers)
-// ✅ Load and display hotels (markers with booking links)
+
 async function loadHotels(lat, lon) {
   try {
     const hotels = await fetchNearbyHotels(lat, lon);
@@ -137,10 +136,10 @@ async function loadHotels(lat, lon) {
       const [hlon, hlat] = h.geometry.coordinates;
       const name = h.properties.name || "Unnamed Hotel";
 
-      // Encode hotel name for URL
+ 
       const bookingUrl = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(name)}`;
 
-      // Add marker with clickable popup
+   
       const hotelMarker = L.marker([hlat, hlon], { icon: hotelIcon })
         .addTo(map)
         .bindPopup(
@@ -150,13 +149,13 @@ async function loadHotels(lat, lon) {
 
       markersGroup.addLayer(hotelMarker);
 
-      // Optional: if you want clicking the marker (not just the popup link) to redirect:
+   
       hotelMarker.on("click", () => {
         window.open(bookingUrl, "_blank");
       });
     });
 
-    // Fit map to include all markers
+  
     if (markersGroup.getLayers().length > 0) {
       map.fitBounds(markersGroup.getBounds(), { padding: [50, 50] });
     }
@@ -166,7 +165,7 @@ async function loadHotels(lat, lon) {
 }
 
 
-// ✅ Custom hotel icon
+
 const hotelIcon = L.icon({
   iconUrl: "https://cdn-icons-png.flaticon.com/512/139/139899.png", // bed icon
   iconSize: [32, 32],
@@ -177,14 +176,14 @@ let navWatcherId = null;
 let navRouteLayer = null;
 let userNavMarker = null;
 
-// ✅ Start/stop navigation mode
+
 function startNavigation() {
   if (!navigator.geolocation) {
     alert("Geolocation not supported by your browser.");
     return;
   }
 
-  // Stop navigation if already running
+
   if (navWatcherId) {
     navigator.geolocation.clearWatch(navWatcherId);
     navWatcherId = null;
@@ -208,7 +207,7 @@ function startNavigation() {
     async pos => {
       const userLoc = [pos.coords.latitude, pos.coords.longitude];
 
-      // ✅ Move or create user marker
+ 
       if (userNavMarker) {
         userNavMarker.setLatLng(userLoc);
       } else {
@@ -222,7 +221,7 @@ function startNavigation() {
           .addTo(map);
       }
 
-      // ✅ Fetch new route to destination
+   
       try {
         const url = "https://api.openrouteservice.org/v2/directions/driving-car/geojson";
         const body = {
@@ -245,13 +244,13 @@ function startNavigation() {
           const data = await res.json();
           const coords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
 
-          // ✅ Replace old route with new one
+     
           if (navRouteLayer) {
             map.removeLayer(navRouteLayer);
           }
           navRouteLayer = L.polyline(coords, { color: "green", weight: 6 }).addTo(map);
 
-          // Keep map centered on user while navigating
+    
           map.setView(userLoc, 15);
         }
       } catch (err) {
@@ -266,10 +265,11 @@ function startNavigation() {
   );
 }
 
-// ✅ Hook button click
+
 document.addEventListener("DOMContentLoaded", () => {
   const navBtn = document.getElementById("navigateBtn");
   if (navBtn) {
     navBtn.addEventListener("click", startNavigation);
   }
 });
+
